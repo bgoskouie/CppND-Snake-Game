@@ -23,14 +23,14 @@ class Snake {
         _game(game_) {}
 
   void Update();
+  void SnakeCheckForFood(std::unique_ptr<Food>&& food, bool* running);
 
   void GrowBody();
   bool IsGrowing() const;
   bool SnakeCell(int x, int y) const;
   SDL_Point GetTail() const { return snakeTail; }
-  void SnakeCheckForFood(std::unique_ptr<Food>&& food, bool* running);
+  
   Direction direction = Direction::kUp;
-
   float speed{0.1f};
   int size{1};
   bool alive{true};
@@ -42,11 +42,9 @@ class Snake {
   SDL_Point snakeTail;
   void UpdateHead();
   void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell);
-  Game* _game;
+  Game* _game;  // handle
 
-  // static std::mutex snakeMtx;
-  // std::promise<Food> prms;
-  std::future<Food> ftr;
+  static std::mutex snakeMtx;
   bool growing{false};
   bool movedToANewCell{false};
   int grid_width;

@@ -1,19 +1,20 @@
 #include "game.h"
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include "SDL.h"
 
-std::mutex Game::mtx;
+std::mutex Game::gameMtx;
 
-Game::~Game() {}  // won't get called
+Game::~Game() {
+  std::cout << "~Game" << std::endl;
+}
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height, this),
       engine(dev()),
       random_w(0, static_cast<int>(grid_width)),
-      random_h(0, static_cast<int>(grid_height)),
-      food(Food(static_cast<int>(grid_width)/2, static_cast<int>(grid_height)/2)) {
-  // PlaceFood();
+      random_h(0, static_cast<int>(grid_height)) {
 }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
@@ -27,25 +28,24 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   renderer.ClearScreenUpdate();
   rendererHandle = &renderer;
   FoodChain(&snake, &running);
-  // thread_food_generation = std::thread(&Game::FoodGeneration, this, &snake, &running);
-  
-  
+  thread_score_collection = std::thread(&Game::ScoreCollector, this, &running);
+    
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     if (!running) {
-      // thread_food_generation.join();
-      // ftr_food_gen.get();
+      std::unique_lock<std::mutex> ulock(gameMtx);
+      std::cout << "Game:: snake update infinite while loop \"running\" is false" << std::endl;
+      ulock.unlock();
+      thread_score_collection.join();
+      // std::cout << "Game:: thread_score_collection just joined" << std::endl;
+      LogResultsToFile();
+      // std::cout << "Game:: LogResultsToFile ends" << std::endl;
     }
     
-    // Update();
     SnakeUpdate();
-    // CheckForFood(food.GetLocation());
-    // renderer.Render(snake, food);
-    // renderer.ClearScreenUpdate();
-    // renderer.RenderFoodUpdate(food);
     renderer.RenderAllSnakeUpdate(snake, snake.GetTail());
 
     frame_end = SDL_GetTicks();
@@ -72,34 +72,33 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 }
 
 void Game::FoodChain(Snake* snake, bool* running) {
+  std::unique_lock<std::mutex> ulock(gameMtx);
   std::cout << "FoodChain up" << *running << std::endl;
-  // std::cout << 
+  ulock.unlock();
   std::promise<std::unique_ptr<Food>> prms;
   std::future<std::unique_ptr<Food>> ftr = prms.get_future();
   GenerateNewFood(snake, std::move(prms));
-  // std::unique_ptr<Food> food = std::make_unique<Food>(ftr.get());
+
   std::unique_ptr<Food> food_lcl = std::move(ftr.get());
 
-  // while (*running) {
-    // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    // std::cout << "FoodGeneration loop" << *running << std::endl;
-
   ftr_food_chain = std::async(std::launch::async, &Snake::SnakeCheckForFood, snake, std::move(food_lcl), running);
-
-    // if (!running) {
-    //   prms.set_value();
-    //   ftr.get();
-    // }
-    // std::thread snake_update_look_for_food();
-  // }
 }
 
 
-// std::unique_ptr<Food> 
 void Game::GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food>>&& prms_in) {
+  score++;
+  std::chrono::time_point<std::chrono::high_resolution_clock> captureTime = std::chrono::high_resolution_clock::now();
+  char buffer[256];
+  ConvertTimeToStr(buffer, captureTime);
+  std::cout << "Time Gen is: " << buffer << std::endl;
+  scoreLog.send(std::move(captureTime));
+
+  std::unique_lock<std::mutex> ulock(gameMtx);
+  std::cout << "GenerateNewFood starts!" << std::endl;
+  ulock.unlock();
+
   int x, y;
   bool found = false;
-  // score++;
   while (!found) {
     x = random_w(engine);
     y = random_h(engine);
@@ -107,29 +106,12 @@ void Game::GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food
     // food.
     if (!snake->SnakeCell(x, y)) {
       found = true;
-      std::unique_ptr<Food> food_lcl2 = std::make_unique<Food>(x, y);
+      std::unique_ptr<Food> food_local = std::make_unique<Food>(x, y);
       std::promise<std::unique_ptr<Food>> prms_local;
       std::future<std::unique_ptr<Food>> ftr_food = prms_local.get_future();
-      std::async(std::launch::async, &Renderer::RenderFoodUpdate, rendererHandle, std::move(prms_local), std::move(food_lcl2));
+      std::async(std::launch::async, &Renderer::RenderFoodUpdate, rendererHandle, std::move(prms_local), std::move(food_local));
       std::unique_ptr<Food> food_back = ftr_food.get();
       prms_in.set_value(std::move(food_back));
-    }
-  }
-}
-
-void Game::PlaceFood() {
-  int x, y;
-  while (true) {
-    x = random_w(engine);
-    y = random_h(engine);
-    // Check that the location is not occupied by a snake item before placing
-    // food.
-    if (!snake.SnakeCell(x, y)) {
-      food = Food(x, y);
-      std::cout << "new food at " << x << ", " << y << std::endl;
-      // food.GetLocation().x = x;
-      // food.GetLocation().y = y;
-      return;
     }
   }
 }
@@ -140,43 +122,60 @@ void Game::SnakeUpdate() {
   snake.Update();
 }
 
-void Game::CheckForFood(const SDL_Point& foodLocation) {
-  if (!snake.alive) return;
-
-  int new_x = static_cast<int>(snake.head_x);
-  int new_y = static_cast<int>(snake.head_y);
-
-  // Check if there's food over here
-  if (foodLocation.x == new_x && foodLocation.y == new_y) {
-  // if (food.IsLocatedAt(new_x, new_y)) {
-    score++;
-    PlaceFood();
-    // GenerateNewFood();
-    // Grow snake and increase speed.
-    snake.GrowBody();
-    snake.speed += 0.02;
+void Game::ScoreCollector(bool* running) {
+  // std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> timeVec;
+  std::chrono::time_point<std::chrono::high_resolution_clock> time;
+  std::unique_lock<std::mutex> ulock(gameMtx);
+  std::cout << "ScoreCollector starts!" << std::endl;
+  ulock.unlock();
+  while (*running) {
+  // Important note that an infinite loop above does not work (of course with breaking out condition!
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // setting it very high so to show if a user gets two points within 5sec, the msgqueue can hold two messages
+    // ulock.lock();
+    // std::cout << "ScoreCollector after sleep!" << std::endl;
+    // ulock.unlock();
+    while (scoreLog.getSize() > 0) {
+      time = scoreLog.receive();
+      timeVec.push_back(std::move(time));
+    }
   }
+  ulock.lock();
+  std::cout << "ScoreCollector loop ends!" << std::endl;
+  ulock.unlock();
 }
 
-void Game::Update() {
-  if (!snake.alive) return;
-
-  snake.Update();
-
-  int new_x = static_cast<int>(snake.head_x);
-  int new_y = static_cast<int>(snake.head_y);
-
-  // Check if there's food over here
-  // if (food.x == new_x && food.y == new_y) {
-  if (food.IsLocatedAt(new_x, new_y)) {
-    score++;
-    PlaceFood();
-    // GenerateNewFood();
-    // Grow snake and increase speed.
-    snake.GrowBody();
-    snake.speed += 0.02;
+void Game::LogResultsToFile() {
+  // std::cout << "start of LogResultsToFile" << std::endl;
+  // std::cout << "size of timeVec is " << timeVec.size() << std::endl;
+  std::ofstream myfile;
+  myfile.open("results.txt");
+  myfile << "Your score is " << score << std::endl;
+  myfile << "Your times of food capture are:" << std::endl;
+  for (auto time : timeVec) {
+    char buffer[256] = {0};
+    ConvertTimeToStr(buffer, time);
+    std::cout << "Timing: "  << buffer << std::endl;
+    myfile << buffer << std::endl;
   }
+  myfile.close();
+  std::cout << "Please check the file build/results.txt for your game outputs!"  << std::endl;
 }
+
+void Game::ConvertTimeToStr(char* buffer, std::chrono::time_point<std::chrono::high_resolution_clock> time) {
+  std::time_t time_c = std::chrono::high_resolution_clock::to_time_t(time);
+  std::tm now_tm = *std::localtime(&time_c);
+  sprintf( buffer,
+           "%d-%02d-%02d %02d:%02d:%02d.%03d", 
+           now_tm.tm_year + 1900,   // 1900 based
+           now_tm.tm_mon + 1,       // 0 based
+           now_tm.tm_mday,                      
+           now_tm.tm_hour, 
+           now_tm.tm_min, 
+           int(now_tm.tm_sec),
+           int(now_tm.tm_sec*1000) - int(now_tm.tm_sec)*1000 );
+}
+
 
 int Game::GetScore() const { return score; }
 int Game::GetSize() const { return snake.size; }

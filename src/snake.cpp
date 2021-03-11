@@ -3,7 +3,7 @@
 #include <iostream>
 #include "game.h" // needed for Game::GenerateNewFood
 
-// std::mutex Snake::snakeMtx;
+std::mutex Snake::snakeMtx;
 
 void Snake::Update() {
   SDL_Point prev_cell{
@@ -88,7 +88,9 @@ bool Snake::SnakeCell(int x, int y) const {
 }
 
 void Snake::SnakeCheckForFood(std::unique_ptr<Food>&& food, bool* running) {
+  std::unique_lock<std::mutex> ulock(snakeMtx);
   std::cout << "SnakeCheckForFood up" << *running << std::endl;
+  ulock.unlock();
   while (*running) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     // std::cout << "FoodGeneration loop" << *running << std::endl;
@@ -97,13 +99,10 @@ void Snake::SnakeCheckForFood(std::unique_ptr<Food>&& food, bool* running) {
     int new_x = static_cast<int>(head_x);
     int new_y = static_cast<int>(head_y);
 
-    // Check if there's food over here
-    // if (foodLoc.x == new_x && foodLoc.y == new_y) {
     if (food->IsLocatedAt(new_x, new_y)) {
+      ulock.lock();
       std::cout << "Snake::snakeCheckForFood food is found" << std::endl;
-    // if (food.IsLocatedAt(new_x, new_y)) {
-      // score++;
-      // PlaceFood();
+      ulock.unlock();
       std::promise<std::unique_ptr<Food>> prms;
       std::future<std::unique_ptr<Food>> ftr = prms.get_future();
 

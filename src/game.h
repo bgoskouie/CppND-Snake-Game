@@ -16,16 +16,14 @@ class Game {
   ~Game();
   void Run(Controller const &controller, Renderer &renderer,
            std::size_t target_frame_duration);
+  void GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food>>&& prms_in);
+
   int GetScore() const;
   int GetSize() const;
-  // std::unique_ptr<Food> 
-  void GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food>>&& prms_in);
-  
 
  private:
   Snake snake;
   SDL_Point snakeTail;
-  Food food;
 
   std::random_device dev;
   std::mt19937 engine;
@@ -34,19 +32,18 @@ class Game {
 
   int score{0};
 
-  void PlaceFood();
-  void Update();
-
   void SnakeUpdate();
-  void CheckForFood(const SDL_Point& foodLocation);
 
   void FoodChain(Snake* snake, bool* running);
   std::future<void> ftr_food_chain;
   Renderer* rendererHandle = nullptr;
-  std::thread thread_food_generation;
-  std::thread snake_update_look_for_food;
-  static std::mutex mtx;
-
+  std::thread thread_score_collection;
+  void ScoreCollector(bool* running);
+  MessageQueue<std::chrono::time_point<std::chrono::high_resolution_clock>> scoreLog;
+  std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> timeVec;
+  void LogResultsToFile();
+  void ConvertTimeToStr(char* buffer, std::chrono::time_point<std::chrono::high_resolution_clock> time);
+  static std::mutex gameMtx;
 };
 
 #endif

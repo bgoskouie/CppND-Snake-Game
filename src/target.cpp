@@ -10,7 +10,7 @@ Target::~Target()
   // thrd.join();  
 }
 
-Target::Target(int x, int y, TargetType type_, SDL_Color color_)
+Target::Target(int x, int y, TargetType type_, TargetColor color_)
   : location({x, y}),
     type(type_),
     color(color_)  {}
@@ -20,10 +20,29 @@ bool Target::IsLocatedAt(int x, int y) const
   return location.x == x && location.y == y;
 }
 
+SDL_Color Target::GetSDLColor() const {
+  switch(color) {
+    case TargetColor::GREY:
+      return {0x1E, 0x1E, 0x1E, 0xFF};
+    case TargetColor::YELLOW:
+      return {0xFF, 0xCC, 0x00, 0xFF};
+    case TargetColor::WHITE:
+      return {0xFF, 0xFF, 0xFF, 0xFF};
+    case TargetColor::NAVY:
+      return {0x00, 0x7A, 0xCC, 0xFF};
+    case TargetColor::RED:
+      return {0xFF, 0x00, 0x00, 0xFF};
+    default:
+      return {0x00, 0x00, 0x00, 0xFF};
+  }
+}
+
 
 // rule of 5 for Food class:
+Food::Food() {}
+
 Food::Food(int x, int y)
-  :   Target(x, y, TargetType::GOOD, {255, 255, 255, 255})  {
+  :   Target(x, y, TargetType::GOOD, TargetColor::YELLOW)  {
     std::cout << "Food constructor is called"  << std::endl;
 }
 
@@ -52,4 +71,3 @@ Food& Food::operator=(Food&& other) {   // move assignment operator
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
   return *this;
 }
-
