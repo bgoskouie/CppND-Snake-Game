@@ -56,6 +56,7 @@ Food::Food(const Food& other) {           // copy constructor
 Food Food::operator=(const Food& other) {   // copy assignment operator
   std::cout << "Food copy assignment operator is called"  << std::endl;
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
+  return *this;
 }
 
 Food::Food(Food&& other) {              // move constructor
