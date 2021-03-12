@@ -13,8 +13,8 @@ Game::~Game() {
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height, this),
       engine(dev()),
-      random_w(0, static_cast<int>(grid_width)),
-      random_h(0, static_cast<int>(grid_height)) {
+      random_w(0, static_cast<int>(grid_width-1)),   // random number should be inside the range (<grid_width)
+      random_h(0, static_cast<int>(grid_height-1)) {
 }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
