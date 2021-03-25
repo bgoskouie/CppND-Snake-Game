@@ -46,27 +46,20 @@ SDL_Color Target::GetSDLColor() const {
 // rule of 5 for Food class:
 Food::Food()
   : img(NULL),
-    image_surface(NULL) {}
+    image_texture(NULL) {}
 
 Food::Food(int x, int y)
   : Target(x, y, TargetType::GOOD, TargetColor::YELLOW),
-    img(SDL_LoadBMP("image/sdllogo.bmp")),
-    image_surface(NULL) {
-
-    if (!img) {
-      std::cerr << "target.cpp: image load error: " << SDL_GetError() << std::endl;
-    }
+    img(NULL),
+    image_texture(NULL) {
     std::cout << "Food constructor is called"  << std::endl;
+    LoadImage();
 }
 
 Food::~Food() {
   std::cout << "target.cpp:  Food::~Food()" << std::endl;
-  if (!image_surface) {
-    SDL_DestroyTexture(image_surface);
-  }
-  if (!img) {
-    SDL_FreeSurface(img);
-  }
+  FreeTexture();
+  FreeImage();
 }
 
 Food::Food(const Food& other) {           // copy constructor
@@ -80,27 +73,39 @@ Food Food::operator=(const Food& other) {   // copy assignment operator
   return *this;
 }
 
-Food::Food(Food&& other) {              // move constructor
+Food::Food(Food&& other) {              // move constructor gets called upon   Food f2 = std::move(f1);
   std::cout << "Food move cosntructor is called"  << std::endl;
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
+  // heap allocated member variables need to be (stolen) pointed to by the new food instance.
+  img = other.img; 
+  image_texture = other.image_texture;  
+  other.img = NULL;
+  other.image_texture = NULL;
 }
 
-Food& Food::operator=(Food&& other) {   // move assignment operator
+Food& Food::operator=(Food&& other) {   // move assignment operator  gets called upon   Food f2; f2 = std::move(f1);
   std::cout << "Food move assignment operator is called"  << std::endl;
   if (this == &other) {
     return *this;
   }
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
+  this->FreeImage();
+  // heap allocated member variables need to be (stolen) pointed to by the new food instance.
+  // call is like this->img or simply img
+  this->img = other.img; 
+  this->image_texture = other.image_texture;  
+  other.img = NULL;
+  other.image_texture = NULL;
   return *this;
 }
 
-bool Food::SetImageSurface(SDL_Renderer *sdl_renderer) {
+bool Food::LoadTexture(SDL_Renderer *sdl_renderer) {
   if (img) {
-    if (!image_surface) {
-      image_surface = SDL_CreateTextureFromSurface(sdl_renderer, img);
-      std::cout << "target.cpp: image_surface is made successfully!" << std::endl;
+    if (!image_texture) {
+      image_texture = SDL_CreateTextureFromSurface(sdl_renderer, img);
+      std::cout << "target.cpp: image_texture is made successfully!" << std::endl;
     }
-    if (!image_surface) {
+    if (!image_texture) {
       std::cerr << "target.cpp: image load error: " << SDL_GetError() << std::endl;
       return false;
     }
@@ -109,6 +114,25 @@ bool Food::SetImageSurface(SDL_Renderer *sdl_renderer) {
   return false;
 }
 
+void Food::LoadImage() {
+  img = SDL_LoadBMP("image/sdllogo.bmp");
+  if (!img) {
+    std::cerr << "target.cpp: image load error: " << SDL_GetError() << std::endl;
+  }
+}
+
+void Food::FreeImage() {
+  if (!img) {
+    SDL_FreeSurface(img);
+  }
+}
+
+void Food::FreeTexture() {
+  if (!image_texture) {
+    SDL_DestroyTexture(image_texture);
+  }
+}
+
 SDL_Texture* Food::GetImageSurface() {
-  return image_surface;
+  return image_texture;
 }

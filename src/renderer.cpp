@@ -66,7 +66,7 @@ std::unique_ptr<Food> Renderer::RenderFood(std::unique_ptr<Food>&& food) {
   block.x = food->GetLocation().x * block.w;
   block.y = food->GetLocation().y * block.h;
   // Render food
-  if (food->SetImageSurface(sdl_renderer)) {
+  if (food->LoadTexture(sdl_renderer)) {
     // draw the shape:
     SDL_RenderCopy(sdl_renderer, food->GetImageSurface(), nullptr, &block);
   } 

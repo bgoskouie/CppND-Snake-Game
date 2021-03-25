@@ -29,9 +29,16 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   bool running = true;
   renderer.ClearScreenUpdate();
   rendererHandle = &renderer;
+  // testing food construction and move:
+  // std::cout << "Game::Run: Creating f1" << std::endl;
+  // Food f1(10,10);
+  // std::cout << "Game::Run: Creating f2" << std::endl;
+  // Food f2 = std::move(f1);
+  // std::cout << "Game::Run: finshed with f2" << std::endl;
+
   FoodChain(&snake, &running);
   thread_score_collection = std::thread(&Game::ScoreCollector, this, &running);
-    
+  
   while (running) {
     frame_start = SDL_GetTicks();
 
