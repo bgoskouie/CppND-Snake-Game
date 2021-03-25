@@ -1,12 +1,26 @@
 # CPPND: Capstone Snake Game of Babak Oskouei
 
-This is a starter repo for the Capstone project in the [Udacity C++ Nanodegree Program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213). The code for this repo was inspired by [this](https://codereview.stackexchange.com/questions/212296/snake-game-in-c-with-sdl) excellent StackOverflow post and set of responses.
+This is the repo for my Capstone project of the [Udacity C++ Nanodegree Program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213). The code for this repo was inspired by [this](https://codereview.stackexchange.com/questions/212296/snake-game-in-c-with-sdl) excellent StackOverflow post and set of responses.
 
 <img src="snake_game.gif"/>
 
-The Capstone Project gives you a chance to integrate what you've learned throughout this program. This project will become an important part of your portfolio to share with current and future colleagues and employers.
+Below video shows that the food class instance has an image (heap allocated object) which gets moved between game, snake and rederer instances as the food gets eaten by the snake. Notice the printfs.
 
-In this project, you can build your own C++ application or extend this Snake game, following the principles you have learned throughout this Nanodegree Program. This project will demonstrate that you can independently create applications using a wide range of C++ features.
+<img src="snake_game5.gif"/>
+
+This is the Capstone Project of my Cpp Nano degree program. It gave me a chance to integrate what I had learned throughout this program. 
+
+In this project, I built my own C++ application and created this Snake game, following the principles I had learnt throughout the Nanodegree Program. This project can demonstrate that I can independently create applications using a wide range of C++ features. 
+As the snake moves over the food it eats the food and the user gets a point. The snake speed then increases slightly.
+In this project I used SDL2 library and many C++ tools/concepts such as: Unique pointers, Rule of five, Concurrency (async, thread, promise/future construct, message queue), Move semantics, template class, Makefile, cmake, File I/O, ...
+Snake, Food, Game and Renderer run on different threads and interact with each other based on each others' input triggers to one another such as, 
+  1. Snake eating food,
+  2. Food getting regenerated/replaced,
+  3. Food getting rendered,
+  4. Food bounced back to Snake object waiting to get eaten,
+  5. Snake's move from block to block triggers itself to get rendered.
+At the end of the game, a results.txt file will get generated which indicates the overall user's score of the game played indicating how many food pieces were eaten by the snake and the timing between the food captures, i.e. how fast the game was played.
+
 
 ## Dependencies for Running Locally
 * cmake >= 3.7
