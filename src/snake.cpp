@@ -89,7 +89,7 @@ bool Snake::SnakeCell(int x, int y) const {
 
 void Snake::SnakeCheckForFood(std::unique_ptr<Food>&& food, bool* running) {
   std::unique_lock<std::mutex> ulock(snakeMtx);
-  std::cout << "SnakeCheckForFood up" << *running << std::endl;
+  std::cout << "SnakeCheckForFood: up = " << *running << std::endl;
   ulock.unlock();
   while (*running) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -101,13 +101,14 @@ void Snake::SnakeCheckForFood(std::unique_ptr<Food>&& food, bool* running) {
 
     if (food->IsLocatedAt(new_x, new_y)) {
       ulock.lock();
-      std::cout << "Snake::snakeCheckForFood food is found" << std::endl;
+      std::cout << "SnakeCheckForFood: food is found" << std::endl;
       ulock.unlock();
       std::promise<std::unique_ptr<Food>> prms;
       std::future<std::unique_ptr<Food>> ftr = prms.get_future();
 
       std::async(std::launch::async, &Game::GenerateNewFood, _game, this, std::move(prms));
       food = std::move(ftr.get());  // calls the Food's move assignment operator
+      std::cout << "SnakeCheckForFood: after food_back" << std::endl;
       // Grow snake and increase speed.
       GrowBody();
       speed += 0.02;

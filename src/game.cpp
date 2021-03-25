@@ -19,9 +19,11 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
 
 void Game::Run(Controller const &controller, Renderer &renderer,
                std::size_t target_frame_duration) {
+  std::cout << "game::target_frame_duration = " << target_frame_duration << std::endl;
   Uint32 title_timestamp = SDL_GetTicks();
   Uint32 frame_start;
   Uint32 frame_end;
+  Uint32 frame_last;
   Uint32 frame_duration;
   int frame_count = 0;
   bool running = true;
@@ -68,12 +70,18 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     if (frame_duration < target_frame_duration) {
       SDL_Delay(target_frame_duration - frame_duration);
     }
+    // frame_last = SDL_GetTicks();
+    // std::cout << "game, frame_duration = " << frame_duration 
+    //           << ", frame_start = " << frame_start
+    //           << ", frame_end = " << frame_end
+    //           << ", frame_last = " << frame_last
+    //           << std::endl;
   }
 }
 
 void Game::FoodChain(Snake* snake, bool* running) {
   std::unique_lock<std::mutex> ulock(gameMtx);
-  std::cout << "FoodChain up" << *running << std::endl;
+  std::cout << "Game::FoodChain: up = " << *running << std::endl;
   ulock.unlock();
   std::promise<std::unique_ptr<Food>> prms;
   std::future<std::unique_ptr<Food>> ftr = prms.get_future();
@@ -90,11 +98,11 @@ void Game::GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food
   std::chrono::time_point<std::chrono::high_resolution_clock> captureTime = std::chrono::high_resolution_clock::now();
   char buffer[256];
   ConvertTimeToStr(buffer, captureTime);
-  std::cout << "Time Gen is: " << buffer << std::endl;
+  // std::cout << "Time Gen is: " << buffer << std::endl;
   scoreLog.send(std::move(captureTime));
 
   std::unique_lock<std::mutex> ulock(gameMtx);
-  std::cout << "GenerateNewFood starts!" << std::endl;
+  std::cout << "Game::GenerateNewFood starts!" << std::endl;
   ulock.unlock();
 
   int x, y;
@@ -106,6 +114,7 @@ void Game::GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food
     // food.
     if (!snake->SnakeCell(x, y)) {
       found = true;
+      std::cout << "Game::GenerateNewFood going to make_unique a food!" << std::endl;
       std::unique_ptr<Food> food_local = std::make_unique<Food>(x, y);
       std::promise<std::unique_ptr<Food>> prms_local;
       std::future<std::unique_ptr<Food>> ftr_food = prms_local.get_future();
@@ -126,7 +135,7 @@ void Game::ScoreCollector(bool* running) {
   // std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> timeVec;
   std::chrono::time_point<std::chrono::high_resolution_clock> time;
   std::unique_lock<std::mutex> ulock(gameMtx);
-  std::cout << "ScoreCollector starts!" << std::endl;
+  // std::cout << "ScoreCollector starts!" << std::endl;
   ulock.unlock();
   while (*running) {
   // Important note that an infinite loop above does not work (of course with breaking out condition!
@@ -141,7 +150,7 @@ void Game::ScoreCollector(bool* running) {
     }
   }
   ulock.lock();
-  std::cout << "ScoreCollector loop ends!" << std::endl;
+  // std::cout << "ScoreCollector loop ends!" << std::endl;
   ulock.unlock();
 }
 

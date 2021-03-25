@@ -31,6 +31,11 @@ Renderer::Renderer(const std::size_t screen_width,
     std::cerr << "Renderer could not be created.\n";
     std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
   }
+  // to check the stat of a file need to #include <sys/stat.h>
+  // struct stat info;
+  // std::string path = "image/sdllogo.bmp"; // To not I get the same behavior with "shaders\\color.vert"
+  // int ret = stat(path.c_str(), &info);
+  // std::cout << "Render stat: " << ret << std::endl;
 }
 
 Renderer::~Renderer() {
@@ -58,12 +63,18 @@ std::unique_ptr<Food> Renderer::RenderFood(std::unique_ptr<Food>&& food) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
-
-  // Render food
-  SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
   block.x = food->GetLocation().x * block.w;
   block.y = food->GetLocation().y * block.h;
-  SDL_RenderFillRect(sdl_renderer, &block);
+  // Render food
+  if (food->SetImageSurface(sdl_renderer)) {
+    // draw the shape:
+    SDL_RenderCopy(sdl_renderer, food->GetImageSurface(), nullptr, &block);
+  } 
+  else {
+    // draw color instead of image:
+    SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
+    SDL_RenderFillRect(sdl_renderer, &block);
+  }
   return std::move(food);
 }
 
@@ -72,8 +83,6 @@ void Renderer::RenderFoodUpdate(std::promise<std::unique_ptr<Food>>&& prms, std:
   prms.set_value(std::move(food_back));
   UpdateScreen();
 }
-
-
 
 // void Renderer::RenderFood(Food const &food) {
 //   SDL_Rect block;

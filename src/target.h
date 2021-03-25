@@ -47,9 +47,12 @@ public:
   Food& operator=(Food&& other);
 
   void SetType(TargetType newType) override {type = newType;}
+  bool SetImageSurface(SDL_Renderer *sdl_renderer);
+  SDL_Texture* GetImageSurface();
   
 private:
-  bool placed;
+  SDL_Surface *img;
+  SDL_Texture *image_surface;
 };
 
 
