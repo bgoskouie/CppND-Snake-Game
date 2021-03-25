@@ -3,6 +3,27 @@
 #include <stdexcept>
 #include "target.h"
 
+
+Color::Color() {}
+
+SDL_Color Color::GetSDLColor() const {
+  switch(color) {
+    case GameColor::GREY:
+      return {0x1E, 0x1E, 0x1E, 0xFF};
+    case GameColor::YELLOW:
+      return {0xFF, 0xCC, 0x00, 0xFF};
+    case GameColor::WHITE:
+      return {0xFF, 0xFF, 0xFF, 0xFF};
+    case GameColor::NAVY:
+      return {0x00, 0x7A, 0xCC, 0xFF};
+    case GameColor::RED:
+      return {0xFF, 0x00, 0x00, 0xFF};
+    default: // black
+      return {0x00, 0x00, 0x00, 0xFF};
+  }
+}
+
+
 Target::Target() {}
 
 Target::~Target() 
@@ -10,10 +31,10 @@ Target::~Target()
   // thrd.join();  
 }
 
-Target::Target(int x, int y, TargetType type_, TargetColor color_)
+Target::Target(int x, int y, TargetType type_, GameColor color_)
   : location({x, y}),
     type(type_),
-    color(color_)  {}
+    Color(color_)  {}
 
 bool Target::IsLocatedAt(int x, int y) const
 {
@@ -25,23 +46,6 @@ void Target::SetLocation(int x, int y) {
   location.y = y;
 }
 
-SDL_Color Target::GetSDLColor() const {
-  switch(color) {
-    case TargetColor::GREY:
-      return {0x1E, 0x1E, 0x1E, 0xFF};
-    case TargetColor::YELLOW:
-      return {0xFF, 0xCC, 0x00, 0xFF};
-    case TargetColor::WHITE:
-      return {0xFF, 0xFF, 0xFF, 0xFF};
-    case TargetColor::NAVY:
-      return {0x00, 0x7A, 0xCC, 0xFF};
-    case TargetColor::RED:
-      return {0xFF, 0x00, 0x00, 0xFF};
-    default:
-      return {0x00, 0x00, 0x00, 0xFF};
-  }
-}
-
 
 // rule of 5 for Food class:
 Food::Food()
@@ -49,7 +53,7 @@ Food::Food()
     image_texture(NULL) {}
 
 Food::Food(int x, int y)
-  : Target(x, y, TargetType::GOOD, TargetColor::YELLOW),
+  : Target(x, y, TargetType::GOOD, GameColor::YELLOW),
     img(NULL),
     image_texture(NULL) {
     std::cout << "Food constructor is called"  << std::endl;

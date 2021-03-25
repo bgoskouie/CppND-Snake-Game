@@ -3,8 +3,9 @@
 
 #include "SDL.h"
 
+
 enum class TargetType { GOOD, VERYGOOD, BAD, VERYBAD };
-enum class TargetColor {
+enum class GameColor {
   GREY,   //0x1E, 0x1E, 0x1E, 0xFF   screen background color
   YELLOW, //0xFF, 0xCC, 0x00, 0xFF   food
   WHITE,  //0xFF, 0xFF, 0xFF, 0xFF   snake body
@@ -13,17 +14,29 @@ enum class TargetColor {
 };
 
 
-class Target
+class Color {
+public:
+  Color();
+  Color(GameColor color_)
+    : color(color_) {}
+  GameColor GetColor() const {return color;}
+  void SetColor(GameColor color_) {color = color_;}
+  SDL_Color GetSDLColor() const;
+
+private:
+  GameColor color;    // has .r, .g, .b, .a fields. All are uint8_t
+};
+
+
+class Target : public Color
 {
 public:
   Target();
-  Target(int x, int y, TargetType type_, TargetColor color_);
+  Target(int x, int y, TargetType type_, GameColor color_);
   virtual ~Target();
 
   SDL_Point GetLocation() const {return location;}
   void SetLocation(int x, int y);
-  SDL_Color GetSDLColor() const;
-  TargetColor GetColor() const {return color;};
   TargetType GetType() const {return type;}
   bool IsLocatedAt(int x, int y) const;
 
@@ -32,7 +45,6 @@ protected:
 
   SDL_Point location;  
   TargetType type;
-  TargetColor color;   // has .r, .g, .b, .a fields. All are uint8_t
 };
 
 
@@ -58,6 +70,5 @@ private:
   void FreeImage();
   void FreeTexture();
 };
-
 
 #endif

@@ -67,12 +67,18 @@ std::unique_ptr<Food> Renderer::RenderFood(std::unique_ptr<Food>&& food) {
   block.y = food->GetLocation().y * block.h;
   // Render food
   if (food->LoadTexture(sdl_renderer)) {
-    // draw the shape:
+   // draw the shape:
     SDL_RenderCopy(sdl_renderer, food->GetImageSurface(), nullptr, &block);
   } 
-  else {
+  else 
+  {
     // draw color instead of image:
-    SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
+    SDL_SetRenderDrawColor(sdl_renderer,
+                           food->GetSDLColor().r,
+                           food->GetSDLColor().g,
+                           food->GetSDLColor().b,
+                           food->GetSDLColor().a);
+                           // yellow, e.g. {0xFF, 0xCC, 0x00, 0xFF}
     SDL_RenderFillRect(sdl_renderer, &block);
   }
   return std::move(food);
