@@ -16,7 +16,7 @@ class Game {
   ~Game();
   void Run(Controller const &controller, Renderer &renderer,
            std::size_t target_frame_duration);
-  void GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food>>&& prms_in);
+  void ReplaceFood(const Snake* snake, std::promise<std::unique_ptr<Food>>&& prms_in, std::unique_ptr<Food>&& food);
 
   int GetScore() const;
   int GetSize() const;
@@ -35,6 +35,7 @@ class Game {
   void SnakeUpdate();
 
   void FoodChain(Snake* snake, bool* running);
+  void FindNewLocationForFood(const Snake* snake, int& x, int& y);
   std::future<void> ftr_food_chain;
   Renderer* rendererHandle = nullptr;
   std::thread thread_score_collection;

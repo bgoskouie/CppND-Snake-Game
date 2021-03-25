@@ -20,6 +20,11 @@ bool Target::IsLocatedAt(int x, int y) const
   return location.x == x && location.y == y;
 }
 
+void Target::SetLocation(int x, int y) {
+  location.x = x;
+  location.y = y;
+}
+
 SDL_Color Target::GetSDLColor() const {
   switch(color) {
     case TargetColor::GREY:

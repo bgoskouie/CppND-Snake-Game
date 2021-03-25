@@ -21,6 +21,7 @@ public:
   virtual ~Target();
 
   SDL_Point GetLocation() const {return location;}
+  void SetLocation(int x, int y);
   SDL_Color GetSDLColor() const;
   TargetColor GetColor() const {return color;};
   TargetType GetType() const {return type;}

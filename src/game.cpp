@@ -85,7 +85,7 @@ void Game::FoodChain(Snake* snake, bool* running) {
   ulock.unlock();
   std::promise<std::unique_ptr<Food>> prms;
   std::future<std::unique_ptr<Food>> ftr = prms.get_future();
-  GenerateNewFood(snake, std::move(prms));
+  ReplaceFood(snake, std::move(prms), nullptr);
 
   std::unique_ptr<Food> food_lcl = std::move(ftr.get());
 
@@ -93,7 +93,7 @@ void Game::FoodChain(Snake* snake, bool* running) {
 }
 
 
-void Game::GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food>>&& prms_in) {
+void Game::ReplaceFood(const Snake* snake, std::promise<std::unique_ptr<Food>>&& prms_in, std::unique_ptr<Food>&& food) {
   score++;
   std::chrono::time_point<std::chrono::high_resolution_clock> captureTime = std::chrono::high_resolution_clock::now();
   char buffer[256];
@@ -102,25 +102,34 @@ void Game::GenerateNewFood(const Snake* snake, std::promise<std::unique_ptr<Food
   scoreLog.send(std::move(captureTime));
 
   std::unique_lock<std::mutex> ulock(gameMtx);
-  std::cout << "Game::GenerateNewFood starts!" << std::endl;
+  std::cout << "Game::ReplaceFood starts!" << std::endl;
   ulock.unlock();
 
   int x, y;
+  FindNewLocationForFood(snake, x, y);
   bool found = false;
-  while (!found) {
+  if (!food) {
+    std::cout << "Game::ReplaceFood food==null_ptr. Going to make_unique a food!" << std::endl;
+    food = std::make_unique<Food>(x, y);
+  }
+  else {
+    food->SetLocation(x, y);
+  }
+  std::promise<std::unique_ptr<Food>> prms_local;
+  std::future<std::unique_ptr<Food>> ftr_food = prms_local.get_future();
+  std::async(std::launch::async, &Renderer::RenderFoodUpdate, rendererHandle, std::move(prms_local), std::move(food));
+  std::unique_ptr<Food> food_back = ftr_food.get();
+  prms_in.set_value(std::move(food_back));
+}
+
+void Game::FindNewLocationForFood(const Snake* snake, int& x, int& y) {
+  while (true) {
     x = random_w(engine);
     y = random_h(engine);
     // Check that the location is not occupied by a snake item before placing
     // food.
     if (!snake->SnakeCell(x, y)) {
-      found = true;
-      std::cout << "Game::GenerateNewFood going to make_unique a food!" << std::endl;
-      std::unique_ptr<Food> food_local = std::make_unique<Food>(x, y);
-      std::promise<std::unique_ptr<Food>> prms_local;
-      std::future<std::unique_ptr<Food>> ftr_food = prms_local.get_future();
-      std::async(std::launch::async, &Renderer::RenderFoodUpdate, rendererHandle, std::move(prms_local), std::move(food_local));
-      std::unique_ptr<Food> food_back = ftr_food.get();
-      prms_in.set_value(std::move(food_back));
+      return;
     }
   }
 }

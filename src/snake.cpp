@@ -1,7 +1,7 @@
 #include "snake.h"
 #include <cmath>
 #include <iostream>
-#include "game.h" // needed for Game::GenerateNewFood
+#include "game.h" // needed for Game::ReplaceFood
 
 std::mutex Snake::snakeMtx;
 
@@ -106,9 +106,9 @@ void Snake::SnakeCheckForFood(std::unique_ptr<Food>&& food, bool* running) {
       std::promise<std::unique_ptr<Food>> prms;
       std::future<std::unique_ptr<Food>> ftr = prms.get_future();
 
-      std::async(std::launch::async, &Game::GenerateNewFood, _game, this, std::move(prms));
+      std::async(std::launch::async, &Game::ReplaceFood, _game, this, std::move(prms), std::move(food));
       food = std::move(ftr.get());  // calls the Food's move assignment operator
-      std::cout << "SnakeCheckForFood: after food_back" << std::endl;
+      std::cout << "SnakeCheckForFood: food is replaced and back!" << std::endl;
       // Grow snake and increase speed.
       GrowBody();
       speed += 0.02;
