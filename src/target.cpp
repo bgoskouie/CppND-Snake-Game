@@ -26,10 +26,7 @@ SDL_Color Color::GetSDLColor() const {
 
 Target::Target() {}
 
-Target::~Target() 
-{
-  // thrd.join();  
-}
+Target::~Target() {}
 
 Target::Target(int x, int y, TargetType type_, GameColor color_)
   : location({x, y}),
@@ -47,7 +44,7 @@ void Target::SetLocation(int x, int y) {
 }
 
 
-// rule of 5 for Food class:
+// Rule of Five for Food class:
 Food::Food()
   : img(NULL),
     image_texture(NULL) {}
@@ -66,18 +63,21 @@ Food::~Food() {
   FreeImage();
 }
 
-Food::Food(const Food& other) {           // copy constructor
+// Copy constructor
+Food::Food(const Food& other) {           
   std::cout << "Food copy constructor is called"  << std::endl;
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
 }
 
-Food Food::operator=(const Food& other) {   // copy assignment operator
+// Copy assignment operator
+Food Food::operator=(const Food& other) {   
   std::cout << "Food copy assignment operator is called"  << std::endl;
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
   return *this;
 }
 
-Food::Food(Food&& other) {              // move constructor gets called upon   Food f2 = std::move(f1);
+// Move constructor gets called upon   Food f2 = std::move(f1);
+Food::Food(Food&& other) {              
   std::cout << "Food move cosntructor is called"  << std::endl;
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
   // heap allocated member variables need to be (stolen) pointed to by the new food instance.
@@ -87,15 +87,16 @@ Food::Food(Food&& other) {              // move constructor gets called upon   F
   other.image_texture = NULL;
 }
 
-Food& Food::operator=(Food&& other) {   // move assignment operator  gets called upon   Food f2; f2 = std::move(f1);
+// Move assignment operator  gets called upon   Food f2; f2 = std::move(f1);
+Food& Food::operator=(Food&& other) {
   std::cout << "Food move assignment operator is called"  << std::endl;
   if (this == &other) {
     return *this;
   }
   Target(other.GetLocation().x, other.GetLocation().y, other.GetType(), other.GetColor());
   this->FreeImage();
-  // heap allocated member variables need to be (stolen) pointed to by the new food instance.
-  // call is like this->img or simply img
+  // heap allocated member variables need to be (stolen) "pointed to" by the new food instance.
+  // call it like this->img or equivallently simply img
   this->img = other.img; 
   this->image_texture = other.image_texture;  
   other.img = NULL;

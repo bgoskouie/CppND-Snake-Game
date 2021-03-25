@@ -90,30 +90,13 @@ void Renderer::RenderFoodUpdate(std::promise<std::unique_ptr<Food>>&& prms, std:
   UpdateScreen();
 }
 
-// void Renderer::RenderFood(Food const &food) {
-//   SDL_Rect block;
-//   block.w = screen_width / grid_width;
-//   block.h = screen_height / grid_height;
-
-//   // Render food
-//   SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
-//   block.x = food.GetLocation().x * block.w;
-//   block.y = food.GetLocation().y * block.h;
-//   SDL_RenderFillRect(sdl_renderer, &block);
-// }
-
-// void Renderer::RenderFoodUpdate(Food const &food) {
-//   RenderFood(food);
-//   UpdateScreen();
-// }
-
 void Renderer::RenderSnakesBody(Snake const& snake) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
   // Render snake's body
   SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-  for (SDL_Point const &point : snake.body) {
+  for (SDL_Point const &point : snake.body.points) {
     block.x = point.x * block.w;
     block.y = point.y * block.h;
     SDL_RenderFillRect(sdl_renderer, &block);
@@ -125,13 +108,14 @@ void Renderer::RenderSnakesHead(Snake const& snake) {
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
   // Render snake's head
-  block.x = static_cast<int>(snake.head_x) * block.w;
-  block.y = static_cast<int>(snake.head_y) * block.h;
-  if (snake.alive) {
-    SDL_SetRenderDrawColor(sdl_renderer, 0x00, 0x7A, 0xCC, 0xFF);
-  } else {
-    SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0x00, 0x00, 0xFF);
-  }
+  block.x = static_cast<int>(snake.head.GetX()) * block.w;
+  block.y = static_cast<int>(snake.head.GetY()) * block.h;
+
+  // Depending on if snake is alive or not the head color is different.
+  SDL_SetRenderDrawColor(sdl_renderer,  snake.head.GetSDLColor().r,
+                                        snake.head.GetSDLColor().g,
+                                        snake.head.GetSDLColor().b,
+                                        snake.head.GetSDLColor().a);
   SDL_RenderFillRect(sdl_renderer, &block);
 }
 
@@ -157,6 +141,23 @@ void Renderer::RenderAllSnakeUpdate(Snake const& snake, SDL_Point const& snakeTa
 //   RenderFood(food);
 //   RenderSnakesBody(snake);
 //   RenderSnakesHead(snake);
+//   UpdateScreen();
+// }
+
+// void Renderer::RenderFood(Food const &food) {
+//   SDL_Rect block;
+//   block.w = screen_width / grid_width;
+//   block.h = screen_height / grid_height;
+
+//   // Render food
+//   SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
+//   block.x = food.GetLocation().x * block.w;
+//   block.y = food.GetLocation().y * block.h;
+//   SDL_RenderFillRect(sdl_renderer, &block);
+// }
+
+// void Renderer::RenderFoodUpdate(Food const &food) {
+//   RenderFood(food);
 //   UpdateScreen();
 // }
 

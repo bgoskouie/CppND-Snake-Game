@@ -13,7 +13,9 @@ Game::~Game() {
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height, this),
       engine(dev()),
-      random_w(0, static_cast<int>(grid_width-1)),   // random number should be inside the range (<grid_width)
+      // random number should be inside the range (<grid_width)
+      // or we'll see no food if it's at the right or lowest edge
+      random_w(0, static_cast<int>(grid_width-1)),
       random_h(0, static_cast<int>(grid_height-1)) {
 }
 
@@ -29,7 +31,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   bool running = true;
   renderer.ClearScreenUpdate();
   rendererHandle = &renderer;
-  // testing food construction and move:
+  // Testing food construction and move:
   // std::cout << "Game::Run: Creating f1" << std::endl;
   // Food f1(10,10);
   // std::cout << "Game::Run: Creating f2" << std::endl;
@@ -133,8 +135,8 @@ void Game::FindNewLocationForFood(const Snake* snake, int& x, int& y) {
   while (true) {
     x = random_w(engine);
     y = random_h(engine);
-    // Check that the location is not occupied by a snake item before placing
-    // food.
+    // Check that the location is not occupied by a snake
+    // body or head item before placing the new food.
     if (!snake->SnakeCell(x, y)) {
       return;
     }

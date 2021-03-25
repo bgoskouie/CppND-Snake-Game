@@ -12,14 +12,10 @@ class Renderer {
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
 
-  // void Render(Snake const& snake, Food const &food);
   void UpdateWindowTitle(int score, int fps);
-
   void UpdateScreen();
   void ClearScreenUpdate();
   void ClearScreen();
-  // void RenderFood(Food const &food);
-  // void RenderFoodUpdate(Food const& food);
   std::unique_ptr<Food> RenderFood(std::unique_ptr<Food>&& food);
   void RenderFoodUpdate(std::promise<std::unique_ptr<Food>>&& prms, std::unique_ptr<Food>&& food);  
   void RenderSnakesBody(Snake const& snake);

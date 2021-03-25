@@ -2,24 +2,34 @@
 
 This is the repo for my Capstone project of the [Udacity C++ Nanodegree Program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213). The code for this repo was inspired by [this](https://codereview.stackexchange.com/questions/212296/snake-game-in-c-with-sdl) excellent StackOverflow post and set of responses.
 
-<img src="snake_game.gif"/>
+<img src="media/snake_game.gif"/>
 
 Below video shows that the food class instance has an image (heap allocated object) which gets moved between game, snake and rederer instances as the food gets eaten by the snake. Notice the printfs.
 
-<img src="snake_game5.gif"/>
+<img src="media/snake_game5.gif"/>
 
 This is the Capstone Project of my Cpp Nano degree program. It gave me a chance to integrate what I had learned throughout this program. 
 
 In this project, I built my own C++ application and created this Snake game, following the principles I had learnt throughout the Nanodegree Program. This project can demonstrate that I can independently create applications using a wide range of C++ features. 
 As the snake moves over the food it eats the food and the user gets a point. The snake speed then increases slightly.
-In this project I used SDL2 library and many C++ tools/concepts such as: Unique pointers, Rule of five, Concurrency (async, thread, promise/future construct, message queue), Move semantics, template class, Makefile, cmake, File I/O, ...
+In this project I used SDL2 library and many C++ tools/concepts such as: OOP, Inheritance, Unique pointers, Rule of five, Concurrency (async, thread, promise/future construct, message queue), Move semantics, template class, Makefile, cmake, File I/O, ...
 Snake, Food, Game and Renderer run on different threads and interact with each other based on each others' input triggers to one another such as, 
   1. Snake eating food,
   2. Food getting regenerated/replaced,
   3. Food getting rendered,
   4. Food bounced back to Snake object waiting to get eaten,
   5. Snake's move from block to block triggers itself to get rendered.
-At the end of the game, a results.txt file will get generated which indicates the overall user's score of the game played indicating how many food pieces were eaten by the snake and the timing between the food captures, i.e. how fast the game was played.
+  6. Score Collector thread captures the time of food capture
+
+Threads that run in parallel are,
+  1. Game main thread
+  2. Snake updating loop - Updating snake body position as time progresses
+  3. Snake rendering thread - triggered when snakes move is more than a defined block
+  4. Food replacement thread - triggered when food is eaten and at init)
+  5. Food rendering thread - triggered after food is replaced
+  6. Score collector thread - triggered when food is eaten
+
+At the end of the game, a results.txt file gets generated. This file indicates the overall user's score of the game played indicating how many food pieces were eaten by the snake and the timing between the food captures, i.e. how fast the game was played.
 
 
 ## Dependencies for Running Locally
@@ -79,3 +89,135 @@ At the end of the game, a results.txt file will get generated which indicates th
  * A promise and future is used to pass data from a worker thread to a parent thread in the project code. (See game.cpp Game::ReplaceFood line 88)
  * A mutex or lock (e.g. std::lock_guard or `std::unique_lock) is used to protect data that is shared across multiple threads in the project code. (See game.cpp Game::ReplaceFood)
  * A std::condition_variable is used in the project code to synchronize thread execution. (See msgqueue.h line 22)
+
+
+# Output printfs look something like
+root@2936d8609a9b:/home/workspace/capstone/2/CppND-Capstone-Snake-Game-master2# ./build/SnakeGame 
+
+game::target_frame_duration = 16
+
+Game::FoodChain: up = 1
+
+Game::ReplaceFood starts!
+
+Game::ReplaceFood food==null_ptr. Going to make_unique a food!
+
+Food constructor is called
+
+target.cpp: image_texture is made successfully!
+
+SnakeCheckForFood: up = 1
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+SnakeCheckForFood: food is found
+
+Game::ReplaceFood starts!
+
+SnakeCheckForFood: food is replaced and back!
+
+^CGame:: snake update infinite while loop "running" is false
+
+Timing: 2021-03-25 23:04:36.000
+
+Timing: 2021-03-25 23:04:38.000
+
+Timing: 2021-03-25 23:04:43.000
+
+Timing: 2021-03-25 23:04:46.000
+
+Timing: 2021-03-25 23:04:49.000
+
+Timing: 2021-03-25 23:04:51.000
+
+Timing: 2021-03-25 23:04:52.000
+
+Timing: 2021-03-25 23:04:55.000
+
+Timing: 2021-03-25 23:04:57.000
+
+Timing: 2021-03-25 23:04:59.000
+
+Timing: 2021-03-25 23:05:06.000
+
+Timing: 2021-03-25 23:05:11.000
+
+Timing: 2021-03-25 23:05:14.000
+
+Please check the file build/results.txt for your game outputs!
+
+Game has terminated successfully!
+
+Score: 13
+
+Size: 13
+
+~Game
+
+target.cpp:  Food::~Food()
+
+root@2936d8609a9b:/home/workspace/capstone/2/CppND-Capstone-Snake-Game-master2#

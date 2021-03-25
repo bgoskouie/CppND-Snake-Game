@@ -6,11 +6,11 @@
 
 enum class TargetType { GOOD, VERYGOOD, BAD, VERYBAD };
 enum class GameColor {
-  GREY,   //0x1E, 0x1E, 0x1E, 0xFF   screen background color
-  YELLOW, //0xFF, 0xCC, 0x00, 0xFF   food
-  WHITE,  //0xFF, 0xFF, 0xFF, 0xFF   snake body
-  NAVY,   //0x00, 0x7A, 0xCC, 0xFF   snake head alive
-  RED,    //0xFF, 0x00, 0x00, 0xFF   snake head dead
+  GREY,   //0x1E, 0x1E, 0x1E, 0xFF   Screen background color
+  YELLOW, //0xFF, 0xCC, 0x00, 0xFF   Food
+  WHITE,  //0xFF, 0xFF, 0xFF, 0xFF   Snake body
+  NAVY,   //0x00, 0x7A, 0xCC, 0xFF   Snake head alive
+  RED,    //0xFF, 0x00, 0x00, 0xFF   Snake head dead
 };
 
 
@@ -23,8 +23,9 @@ public:
   void SetColor(GameColor color_) {color = color_;}
   SDL_Color GetSDLColor() const;
 
-private:
-  GameColor color;    // has .r, .g, .b, .a fields. All are uint8_t
+protected:
+  // has .r, .g, .b, .a fields. All are uint8_t
+  GameColor color;
 };
 
 
